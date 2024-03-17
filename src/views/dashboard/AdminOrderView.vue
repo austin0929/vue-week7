@@ -37,14 +37,18 @@
           </td>
           <td class="text-right">{{ order.total }}</td>
           <td>
-             <div
-              class="bg-success text-center tableStatusActive"
-              v-if="order.is_paid"
-            >
-              <span>已付款</span>
-            </div>
-            <div class="bg-warning text-center tableStatusInactive" v-else>
-              <span>未付款</span>
+            <div class="form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                :id="`paidSwitch${order.id}`"
+                v-model="order.is_paid"
+                @change="updatePaid(order)"
+              />
+              <label class="form-check-label" :for="`paidSwitch${order.id}`">
+                <span v-if="order.is_paid">已付款</span>
+                <span v-else>未付款</span>
+              </label>
             </div>
           </td>
           <td>
@@ -80,18 +84,18 @@ export default {
       pagination: {},
       localDate: "",
       tempOrder: {},
-      isLoading: false
+      isLoading: false,
     };
   },
   methods: {
     getOrders(page = 1) {
-      this.isLoading = true
+      this.isLoading = true;
       const api = `${VITE_APP_URL}/api/${VITE_APP_PATH}/orders?page=${page}`;
       this.$http.get(api).then((res) => {
         this.orders = res.data.orders;
         this.pagination = res.data.pagination;
         this.getDate();
-        this.isLoading = false
+        this.isLoading = false;
       });
     },
     getDate() {
@@ -103,6 +107,20 @@ export default {
           let day = date.getDate();
           this.localDate = `${year}/${month}/${day}`;
         }
+      });
+    },
+    updatePaid(order) {
+      const api = `${VITE_APP_URL}/api/${VITE_APP_PATH}/admin/order/${order.id}`;
+      const paidDate = new Date();
+      const paidDateCurrentTime = Math.floor(paidDate.getTime() / 1000);
+      const formattedTime = paidDateCurrentTime.toString();
+      const changeNum = parseInt(formattedTime);
+      const paid = {
+        is_paid: order.is_paid,
+        paid_date: changeNum,
+      };
+      this.$http.put(api, { data: paid }).then((res) => {
+        this.getOrders();
       });
     },
     delOrder(orderId) {
