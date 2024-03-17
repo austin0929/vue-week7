@@ -61,7 +61,7 @@ export default {
       .then((res) => {})
       .catch((err) => {
         console.log(err);
-        this.$router.push("/login");
+        this.$router.push("/");
       });
   },
 };
